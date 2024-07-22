@@ -83,7 +83,7 @@ td, th[scope = 'row']{
     text-align: center;
 }
 
-.networkType{
+.networkType, .networkClass{
     margin-top: 30px;
     text-align: center;
 }

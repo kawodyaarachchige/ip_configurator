@@ -3,6 +3,44 @@ import BranchModel from "./BranchModel.js";
 
 $(`#btnGenerate`).on(`click`, () => {
 
+    setNetworkType();
+    selectNetworkClass(branchDetails);
+
+
+
+
+
+})
+
+function selectNetworkClass(data) {
+    const branchEmployeeCounts = {};
+
+    data.forEach(item => {
+        if (!branchEmployeeCounts[item.branch]) {
+            branchEmployeeCounts[item.branch] = 0;
+        }
+        branchEmployeeCounts[item.branch] += item.employeeCount;
+    });
+
+    let maxEmployees = 0;
+    let maxBranch = '';
+
+    for (const [branch, count] of Object.entries(branchEmployeeCounts)) {
+        if (count > maxEmployees) {
+            maxEmployees = count;
+            maxBranch = branch;
+        }
+    }
+
+    if (maxEmployees < 200) {
+        $(`#networkClass`).text(`Class C`);
+    } else if (maxEmployees < 1000) {
+        $(`#networkClass`).text(`Class B`);
+    }
+    
+}
+
+function setNetworkType(){
     var count = getBranchesCount(branchDetails);
     console.log(count)
 
@@ -11,9 +49,7 @@ $(`#btnGenerate`).on(`click`, () => {
     } else {
         $(`#networkType`).text(`MAN (Metropolitan Area Network)`);
     }
-
-
-})
+}
 
 function getBranchesCount(branches) {
     const uniqueLocations = new Set();
