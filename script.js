@@ -3,7 +3,28 @@ import BranchModel from "./BranchModel.js";
 
 $(`#btnGenerate`).on(`click`, () => {
 
+    var count = getBranchesCount(branchDetails);
+    console.log(count)
+
+    if (count === 1) {
+        $(`#networkType`).text(`LAN (Local Area Network)`);
+    } else {
+        $(`#networkType`).text(`MAN (Metropolitan Area Network)`);
+    }
+
+
 })
+
+function getBranchesCount(branches) {
+    const uniqueLocations = new Set();
+
+    branches.forEach(brnch => {
+        uniqueLocations.add(brnch.branch);
+    });
+
+    return uniqueLocations.size;
+}
+
 
 $(`#btnAdd`).on(`click`, () => {
     const branch = document.getElementById('branch').value;

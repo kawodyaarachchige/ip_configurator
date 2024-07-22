@@ -82,3 +82,8 @@ th[scope = 'col']{
 td, th[scope = 'row']{
     text-align: center;
 }
+
+.networkType{
+    margin-top: 30px;
+    text-align: center;
+}
