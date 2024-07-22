@@ -7,9 +7,6 @@ $(`#btnGenerate`).on(`click`, () => {
     selectNetworkClass(branchDetails);
 
 
-
-
-
 })
 
 function selectNetworkClass(data) {
@@ -37,7 +34,7 @@ function selectNetworkClass(data) {
     } else if (maxEmployees < 1000) {
         $(`#networkClass`).text(`Class B`);
     }
-    
+
 }
 
 function setNetworkType(){
@@ -70,7 +67,11 @@ $(`#btnAdd`).on(`click`, () => {
     if (branch == "" || sector == "" || numOfCom == "") {
         alert("Please fill all the fields");
     } else {
-        let branchDetail = new BranchModel(branch, sector, numOfCom);
+        var bSize = checkBlockSize(numOfCom);
+        const snm = checkSNM(bSize);
+
+        let branchDetail = new BranchModel(
+            branch, sector, numOfCom, bSize,"","","",snm);
         branchDetails.push(branchDetail);
         console.log(branchDetails);
 
@@ -78,6 +79,14 @@ $(`#btnAdd`).on(`click`, () => {
         loadBranchTable()
     }
 });
+
+function checkSNM(data){
+
+    let value = 256 - data;
+    let newSNM = "255.255.255."+value;
+    return newSNM;
+
+}
 
 function clearFields() {
     $('#branch').val("");
@@ -89,14 +98,16 @@ function loadBranchTable() {
     $('#tableBody').empty();
 
     branchDetails.map((branch,index) => {
-        var branchName = branch.branch;
-        var sectorName = branch.sector;
-        var numOfComputers = branch.numOfCom;
 
         var record = `<tr>
-        <td class="cus-id-val">${branchName}</td>
-        <td class="cus-fname-val">${sectorName}</td>
-        <td class="cus-address-val">${numOfComputers}</td>
+        <td >${branch.branch}</td>
+        <td >${branch.sector}</td>
+        <td >${branch.numOfCom}</td>
+        <td >${branch.blockSize}</td>
+        <td >${branch.networkAdd}</td>
+        <td >${branch.DefaultGW}</td>
+        <td >${branch.BroadcastAdd}</td>
+        <td >${branch.SNM}</td>
     </tr>`;
 
         console.log(record)
@@ -104,5 +115,25 @@ function loadBranchTable() {
         $('#configTable').append(record);
     });
 
+}
+
+function checkBlockSize(data) {
+    if (data < 2) {
+        return 2;
+    } else if (data < 4) {
+        return 4;
+    } else if (data < 8) {
+        return 8;
+    } else if (data < 16) {
+        return 16;
+    } else if (data < 32) {
+        return 32;
+    } else if (data < 64) {
+        return 64;
+    } else if (data < 128) {
+        return 128;
+    } else if (data < 256) {
+        return 256;
+    }
 }
 
