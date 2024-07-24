@@ -1,13 +1,119 @@
 import {branchDetails} from "./db.js";
 import BranchModel from "./BranchModel.js";
 
+var branchCount = 0;
+var ipAdd = '192.168.0.0';
+
 $(`#btnGenerate`).on(`click`, () => {
 
+    showHidden();
     setNetworkType();
     selectNetworkClass(branchDetails);
-
-
+    var sortedBranches = sortBranches();
+    branchDetails.length = 0;
+    branchDetails.push(...sortedBranches)
+    setNetworkAddress();
+    sortBranchesAndAssignIPs(branchDetails, ipAdd);
+    loadBranchTable(branchDetails)
 })
+
+
+function sortBranchesAndAssignIPs(branchDetails, startIp) {
+    // Helper function to increment IP address
+    function incrementIP(ip, increment) {
+        const parts = ip.split('.').map(Number);
+        let total = parts[3] + increment;
+        parts[3] = total % 256;
+        total = Math.floor(total / 256);
+        parts[2] = (parts[2] + total) % 256;
+        total = Math.floor((parts[2] + total) / 256);
+        parts[1] = (parts[1] + total) % 256;
+        total = Math.floor((parts[1] + total) / 256);
+        parts[0] = (parts[0] + total) % 256;
+        return parts.join('.');
+    }
+
+    // Group sectors by branch
+    const branches = branchDetails.reduce((acc, entry) => {
+        if (!acc[entry.branch]) {
+            acc[entry.branch] = [];
+        }
+        acc[entry.branch].push(entry);
+        return acc;
+    }, {});
+
+    // Sort sectors within each branch by the number of computers
+    for (const branch in branches) {
+        branches[branch].sort((a, b) => b.numOfCom - a.numOfCom);
+    }
+
+    // Combine the sorted sectors back into the original structure and assign IPs
+    let currentIP = startIp;
+    const sortedDetails = Object.keys(branches)
+        .sort()
+        .reduce((acc, branch) => {
+            branches[branch].forEach((sector) => {
+                sector.networkAdd = currentIP; // Assign current IP to sector
+                sector.DefaultGW = incrementIP(currentIP, 1); // Increment IP based on number of computers
+                currentIP = incrementIP(currentIP, sector.blockSize); // Increment IP based on number of computers
+                sector.BroadcastAdd = incrementIP(currentIP, -1); // Increment IP based on number of computers
+            });
+            acc.push(...branches[branch]);
+            return acc;
+        }, []);
+
+    // Reassign sorted details back to the original array
+    branchDetails.length = 0; // Clear the original array
+    branchDetails.push(...sortedDetails); // Assign sorted data back to the original array
+}
+
+
+function setNetworkAddress(){
+    for (let i = 0; i < branchDetails.length; i++) {
+        branchDetails[i].networkAdd = ipAdd;
+        ipAdd = ipAdd.substring(0, ipAdd.lastIndexOf(".") + 1) + (parseInt(ipAdd.substring(ipAdd.lastIndexOf(".") + 1)) + 1);
+    }
+}
+
+function sortBranches(){
+    // Group sectors by branch
+    const branches = branchDetails.reduce((acc, entry) => {
+        if (!acc[entry.branch]) {
+            acc[entry.branch] = [];
+        }
+        acc[entry.branch].push(entry);
+        return acc;
+    }, {});
+
+    console.log(branches)
+
+// Sort sectors within each branch by the number of computers
+    for (const branch in branches) {
+        branches[branch].sort((a, b) => b.numOfCom - a.numOfCom);
+    }
+
+// Count the number of branches
+    branchCount = Object.keys(branches).length;
+
+// Combine the sorted sectors back into the original structure
+     var sortBranches = Object.keys(branches)
+        .sort()
+        .reduce((acc, branch) => {
+            acc.push(...branches[branch]);
+            return acc;
+        }, []);
+
+    console.log(branchDetails)
+    console.log(sortBranches)
+
+    return sortBranches;
+
+}
+
+
+function showHidden(){
+    $('.hide').css("display","inherit")
+}
 
 function selectNetworkClass(data) {
     const branchEmployeeCounts = {};
@@ -76,7 +182,7 @@ $(`#btnAdd`).on(`click`, () => {
         console.log(branchDetails);
 
         clearFields()
-        loadBranchTable()
+        loadBranchTable(branchDetails)
     }
 });
 
@@ -94,10 +200,10 @@ function clearFields() {
     $('#noOfComputers').val("");
 }
 
-function loadBranchTable() {
+function loadBranchTable(data) {
     $('#tableBody').empty();
 
-    branchDetails.map((branch,index) => {
+    data.map((branch,index) => {
 
         var record = `<tr>
         <td >${branch.branch}</td>
